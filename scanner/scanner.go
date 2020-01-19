@@ -20,6 +20,7 @@ type Scanner struct {
 	Timeout time.Duration
 	Concurrent *semaphore.Weighted
 	Protocol string
+	Result *Host
 }
 
 // Host contains the scan results and information about a host.
@@ -27,7 +28,7 @@ type Host struct {
 	Addr  string
 	IP string
 	IsUp  bool
-	Ports []*Port
+	Ports []Port
 	Vendor	string
 	OSInfo	string
 	Mac	string
@@ -84,11 +85,6 @@ func scanTCP(ip string, port int, timeout time.Duration) {
 	conn, err := net.DialTimeout("tcp", tcpAddr.String(), timeout)
 
 	if err != nil {
-		// dial tcp <host:port>: connectex: No connection could be made because the target machine actively refused it.
-		// dial tcp <host:port>: connectex: The requested address is not valid in its context.
-		// dial tcp <host:port>: i/o timeout
-		// dial tcp <host:port>: bind: An operation on a socket could not be performed because the system lacked sufficient buffer space or because a queue was full.
-
 		if strings.Contains(err.Error(), "bind: An operation on a socket could not be performed because the system lacked sufficient buffer space or because a queue was full.") {		
 			time.Sleep(timeout)
 			scanTCP(ip, port, timeout)
@@ -99,6 +95,7 @@ func scanTCP(ip string, port int, timeout time.Duration) {
 	}
 
 	conn.Close()
+	// h.IsUp = true
 	fmt.Println(port, "open")
 }
 
@@ -115,8 +112,4 @@ func (s *Scanner) Scan(startPort int, endPort int) {
 			scanTCP(s.Host, port, s.Timeout)
 		}(port)
 	}
-}
-
-func (s Scanner) renderAddr(port int) string {
-	return fmt.Sprintf("%s:%d", s.Host, port)
 }
