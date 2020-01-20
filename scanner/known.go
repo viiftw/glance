@@ -1,8 +1,10 @@
 package scanner
 
+// UNKNOWN default for unknown port
 const UNKNOWN = "<Unknown>"
 
-var KNOWN_PORTS = map[int]string{
+// KNOWNPORTS are sample known ports
+var KNOWNPORTS = map[int]string{
 	27017: "mongodb [ http://www.mongodb.org/ ]",
 	28017: "mongodb web admin [ http://www.mongodb.org/ ]",
 	21:    "ftp",
@@ -32,10 +34,13 @@ var KNOWN_PORTS = map[int]string{
 	3535:  "SMTP (alternate)",
 	554:   "RTSP",
 	9160:  "Cassandra [ http://cassandra.apache.org/ ]",
+	8000:  "Nodejs",
+	9200:  "Elasticsearch",
+	5601:  "Kibana",
 }
 
-func (s Scanner) predictPort(port int) string {
-	if result, ok := KNOWN_PORTS[port]; ok {
+func predictPort(port int) string {
+	if result, ok := KNOWNPORTS[port]; ok {
 		return result
 	}
 	return UNKNOWN

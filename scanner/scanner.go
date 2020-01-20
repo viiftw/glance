@@ -23,63 +23,34 @@ type Scanner struct {
 	Result *Host
 }
 
-// Host contains the scan results and information about a host.
-type Host struct {
-	Addr  string
-	IP string
-	IsUp  bool
-	Ports []Port
-	Vendor	string
-	OSInfo	string
-	Mac	string
-	TimeComplete time.Duration
-}
-
-// Service contains the info about service
-type Service struct {
-	Name string
-	Version string
-	Description string
-}
-
-// Port contains info about a port
-type Port struct {
-	IsOpen	bool
-	Number	int
-	ServiceInfo	Service
-}
-
-// Error contains information about an API error.
-type Error struct {
-	Code    string `json:"code"`
-	Message string `json:"message"`
-}
-
 // NewScanner constructor
 func NewScanner(host string, timeout time.Duration, concurrent int64, protocol string) *Scanner {
 	protocol = "tcp"
-	return &Scanner{host, timeout, semaphore.NewWeighted(concurrent), protocol}
+	return &Scanner{host, timeout, semaphore.NewWeighted(concurrent), protocol, NewHost(host)}
 }
 
+// SetConcurrent set max goroutine for scanner
 func (s *Scanner) SetConcurrent(concurrent int64) {
 	s.Concurrent = semaphore.NewWeighted(concurrent)
 }
 
+// SetTimeout set timeout for net.DialTimeout
 func (s *Scanner) SetTimeout(timeout time.Duration) {
 	s.Timeout = timeout
 }
 
+// SetProtocol set protocol for scanner
 func (s *Scanner) SetProtocol(protocol string) {
 	s.Protocol = protocol
 }
 
-func scanTCP(ip string, port int, timeout time.Duration) {
+func scanTCP(ip string, port int, timeout time.Duration) int{
 	target := fmt.Sprintf("%s:%d", ip, port)
 
 	tcpAddr, err := net.ResolveTCPAddr("tcp4", target)
 	if err != nil {
 		log.Println(err)
-		return
+		return -1
 	}
 	
 	conn, err := net.DialTimeout("tcp", tcpAddr.String(), timeout)
@@ -91,14 +62,16 @@ func scanTCP(ip string, port int, timeout time.Duration) {
 		} else {
 			// fmt.Println(port, "closed")
 		}
-		return
+		return -1
 	}
 
 	conn.Close()
 	// h.IsUp = true
-	fmt.Println(port, "open")
+	// fmt.Println(port, "open")
+	return port
 }
 
+// Scan start scan with startPort and endPort numbers
 func (s *Scanner) Scan(startPort int, endPort int) {
 	wg := sync.WaitGroup{}
 	defer wg.Wait()
@@ -109,7 +82,33 @@ func (s *Scanner) Scan(startPort int, endPort int) {
 		go func(port int) {
 			defer s.Concurrent.Release(1)
 			defer wg.Done()
-			scanTCP(s.Host, port, s.Timeout)
+			s.handleOpenPort(scanTCP(s.Host, port, s.Timeout))
 		}(port)
 	}
+}
+
+func (s *Scanner) handleOpenPort(portNumber int) {
+	if portNumber == -1 {
+		return
+	}
+	service := predictPort(portNumber)
+	description := ""
+	port := NewPort(true, portNumber, service, description)
+
+	resultsMutex := sync.Mutex{}
+	resultsMutex.Lock()
+	s.Result.UpdatePort(port)
+	if !s.Result.IsUp {
+		s.Result.UpdateStatus(true)
+	}
+	s.Result.UpdateIP(getIP(s.Host))
+	resultsMutex.Unlock()
+}
+
+func getIP(host string) string {
+	ip, err:= net.LookupIP(host)
+	if err != nil {
+		return UNKNOWN
+	}
+	return fmt.Sprintf("%s", ip)
 }
