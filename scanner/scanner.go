@@ -9,18 +9,18 @@ import (
 	"strings"
 	"sync"
 	// "runtime"
-	"time"
 	"golang.org/x/sync/semaphore"
 	"log"
+	"time"
 )
 
 // Scanner is struct of scanner object
 type Scanner struct {
-	Host string
-	Timeout time.Duration
+	Host       string
+	Timeout    time.Duration
 	Concurrent *semaphore.Weighted
-	Protocol string
-	Result *Host
+	Protocol   string
+	Result     *Host
 }
 
 // NewScanner constructor
@@ -44,7 +44,7 @@ func (s *Scanner) SetProtocol(protocol string) {
 	s.Protocol = protocol
 }
 
-func scanTCP(ip string, port int, timeout time.Duration) int{
+func scanTCP(ip string, port int, timeout time.Duration) int {
 	target := fmt.Sprintf("%s:%d", ip, port)
 
 	tcpAddr, err := net.ResolveTCPAddr("tcp4", target)
@@ -52,11 +52,11 @@ func scanTCP(ip string, port int, timeout time.Duration) int{
 		log.Println(err)
 		return -1
 	}
-	
+
 	conn, err := net.DialTimeout("tcp", tcpAddr.String(), timeout)
 
 	if err != nil {
-		if strings.Contains(err.Error(), "bind: An operation on a socket could not be performed because the system lacked sufficient buffer space or because a queue was full.") {		
+		if strings.Contains(err.Error(), "bind: An operation on a socket could not be performed because the system lacked sufficient buffer space or because a queue was full.") {
 			time.Sleep(timeout)
 			scanTCP(ip, port, timeout)
 		} else {
@@ -107,7 +107,7 @@ func (s *Scanner) handleOpenPort(portNumber int) {
 
 // GetIP return ips of hostname
 func GetIP(host string) string {
-	ip, err:= net.LookupIP(host)
+	ip, err := net.LookupIP(host)
 	if err != nil {
 		return UNKNOWN
 	}

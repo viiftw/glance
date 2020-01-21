@@ -1,7 +1,7 @@
 package scanner
 
 // UNKNOWN default for unknown port
-const UNKNOWN = "<Unknown>"
+const UNKNOWN = "Unknown"
 
 // KNOWNPORTS are sample known ports
 var KNOWNPORTS = map[int]string{

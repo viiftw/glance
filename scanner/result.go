@@ -1,19 +1,19 @@
 package scanner
 
 import (
-	// "time"
+// "time"
 )
 
 // Host contains the scan results and information about a host.
 type Host struct {
-	Addr  string
-	IP string
-	IsUp  bool
-	Ports []*Port
-	Vendor	string
-	OSInfo	string
-	Mac	string
-	TimeComplete float64
+	Addr         string  `json:"addr"`
+	IP           string  `json:"ip"`
+	IsUp         bool    `json:"isup"`
+	Ports        []*Port `json:"ports"`
+	Vendor       string  `json:"vendor"`
+	OSInfo       string  `json:"osinfo"`
+	Mac          string  `json:"mac"`
+	TimeComplete float64 `json:"timecomplete"`
 }
 
 // NewHost constructor

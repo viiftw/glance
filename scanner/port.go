@@ -1,17 +1,17 @@
 package scanner
 
 import (
-	// "fmt"
-	// "time"
-	// "log"
+// "fmt"
+// "time"
+// "log"
 )
 
 // Port contains info about a port
 type Port struct {
-	IsOpen	bool
-	Number	int
-	Service	string
-	Description string
+	IsOpen      bool   `json:"isopen"`
+	Number      int    `json:"number"`
+	Service     string `json:"service"`
+	Description string `json:"description"`
 }
 
 // NewPort constructor
