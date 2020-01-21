@@ -100,12 +100,13 @@ func (s *Scanner) handleOpenPort(portNumber int) {
 	s.Result.UpdatePort(port)
 	if !s.Result.IsUp {
 		s.Result.UpdateStatus(true)
+		s.Result.UpdateIP(GetIP(s.Host))
 	}
-	s.Result.UpdateIP(getIP(s.Host))
 	resultsMutex.Unlock()
 }
 
-func getIP(host string) string {
+// GetIP return ips of hostname
+func GetIP(host string) string {
 	ip, err:= net.LookupIP(host)
 	if err != nil {
 		return UNKNOWN
